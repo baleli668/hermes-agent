@@ -48,3 +48,8 @@ web/src/i18n/context.tsx merge=ours
 
 # Package metadata
 pyproject.toml merge=ours
+
+# Desktop app (Electron) — brand-sensitive
+apps/desktop/package.json merge=ours
+apps/desktop/index.html merge=ours
+apps/desktop/electron/main.cjs merge=ours
