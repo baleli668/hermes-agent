@@ -1,23 +1,23 @@
-const GOLD = '\x1b[38;2;255;215;0m'
-const AMBER = '\x1b[38;2;255;191;0m'
-const BRONZE = '\x1b[38;2;205;127;50m'
-const DIM = '\x1b[38;2;184;134;11m'
+const TEAL = '\x1b[38;2;0;188;212m'
+const CYAN = '\x1b[38;2;0;151;167m'
+const DARKTEAL = '\x1b[38;2;0;131;143m'
+const DIM = '\x1b[38;2;0;96;100m'
 const RESET = '\x1b[0m'
 
 const LOGO = [
-  '██╗  ██╗███████╗██████╗ ███╗   ███╗███████╗███████╗       █████╗  ██████╗ ███████╗███╗   ██╗████████╗',
-  '██║  ██║██╔════╝██╔══██╗████╗ ████║██╔════╝██╔════╝      ██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝',
-  '███████║█████╗  ██████╔╝██╔████╔██║█████╗  ███████╗█████╗███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║   ',
-  '██╔══██║██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══╝  ╚════██║╚════╝██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║   ',
-  '██║  ██║███████╗██║  ██║██║ ╚═╝ ██║███████╗███████║      ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║   ',
-  '╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚══════╝      ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝   '
+  '███╗   ██╗██╗██╗   ██╗ ██████╗██╗      █████╗ ██╗    ██╗',
+  '████╗  ██║██║██║   ██║██╔════╝██║     ██╔══██╗██║    ██║',
+  '██╔██╗ ██║██║██║   ██║██║     ██║     ███████║██║ █╗ ██║',
+  '██║╚██╗██║██║██║   ██║██║     ██║     ██╔══██║██║███╗██║',
+  '██║ ╚████║██║╚██████╔╝╚██████╗███████╗██║  ██║╚███╔███╔╝',
+  '╚═╝  ╚═══╝╚═╝ ╚═════╝  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝'
 ]
 
-const GRADIENT = [GOLD, GOLD, AMBER, AMBER, BRONZE, BRONZE] as const
-const LOGO_WIDTH = 98
+const GRADIENT = [TEAL, TEAL, CYAN, CYAN, DARKTEAL, DIM] as const
+const LOGO_WIDTH = 70
 
-const TAGLINE = `${DIM}⚕ Nous Research · Messenger of the Digital Gods${RESET}`
-const FALLBACK = `\x1b[1m${GOLD}⚕ NOUS HERMES${RESET}`
+const TAGLINE = `${DIM}◆ NiuClaw · Claw into the future${RESET}`
+const FALLBACK = `\x1b[1m${TEAL}◆ NIUCLAW${RESET}`
 
 export function bootBanner(cols: number = process.stdout.columns || 80): string {
   const body = cols >= LOGO_WIDTH ? LOGO.map((text, i) => `${GRADIENT[i]}${text}${RESET}`).join('\n') : FALLBACK

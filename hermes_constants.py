@@ -1,4 +1,4 @@
-"""Shared constants for Hermes Agent.
+"""Shared constants for NiuClaw Agent.
 
 Import-safe module with no dependencies — can be imported from anywhere
 without risk of circular imports.
@@ -9,51 +9,78 @@ from pathlib import Path
 
 
 def get_hermes_home() -> Path:
-    """Return the Hermes home directory (default: ~/.hermes).
+    """Return the agent home directory (default: ~/.niuclaw).
 
-    Reads HERMES_HOME env var, falls back to ~/.hermes.
+    Resolution order:
+    1. ``NIUCLAW_HOME`` env var (takes priority)
+    2. ``HERMES_HOME`` env var (backward compat with upstream)
+    3. ``~/.niuclaw`` if it already exists on disk
+    4. ``~/.hermes`` if it exists on disk (legacy install)
+    5. ``~/.niuclaw`` (new default for fresh installs)
+
     This is the single source of truth — all other copies should import this.
     """
-    val = os.environ.get("HERMES_HOME", "").strip()
-    return Path(val) if val else Path.home() / ".hermes"
+    # Prefer NIUCLAW_HOME, fall back to HERMES_HOME for backward compat
+    val = (
+        os.environ.get("NIUCLAW_HOME", "").strip()
+        or os.environ.get("HERMES_HOME", "").strip()
+    )
+    if val:
+        return Path(val)
+
+    # No env var set — check disk for existing directories
+    niuclaw_default = Path.home() / ".niuclaw"
+    hermes_default = Path.home() / ".hermes"
+
+    if niuclaw_default.exists():
+        return niuclaw_default
+    if hermes_default.exists():
+        return hermes_default
+    return niuclaw_default
 
 
 def get_default_hermes_root() -> Path:
-    """Return the root Hermes directory for profile-level operations.
+    """Return the root agent directory for profile-level operations.
 
-    In standard deployments this is ``~/.hermes``.
+    In standard deployments this is ``~/.niuclaw`` (or ``~/.hermes`` legacy).
 
-    In Docker or custom deployments where ``HERMES_HOME`` points outside
-    ``~/.hermes`` (e.g. ``/opt/data``), returns ``HERMES_HOME`` directly
-    — that IS the root.
+    In Docker or custom deployments where ``NIUCLAW_HOME`` or ``HERMES_HOME``
+    points outside the home directory (e.g. ``/opt/data``), returns the
+    env-var value directly — that IS the root.
 
-    In profile mode where ``HERMES_HOME`` is ``<root>/profiles/<name>``,
-    returns ``<root>`` so that ``profile list`` can see all profiles.
-    Works both for standard (``~/.hermes/profiles/coder``) and Docker
-    (``/opt/data/profiles/coder``) layouts.
+    In profile mode where the home is ``<root>/profiles/<name>``, returns
+    ``<root>`` so that ``profile list`` can see all profiles.
+    Works for standard, Docker, custom, and legacy layouts.
 
     Import-safe — no dependencies beyond stdlib.
     """
-    native_home = Path.home() / ".hermes"
-    env_home = os.environ.get("HERMES_HOME", "")
+    native_home = Path.home() / ".niuclaw"
+    legacy_home = Path.home() / ".hermes"
+
+    env_home = (
+        os.environ.get("NIUCLAW_HOME", "").strip()
+        or os.environ.get("HERMES_HOME", "").strip()
+    )
     if not env_home:
-        return native_home
+        # Prefer .niuclaw if it exists, else .hermes if it exists
+        return native_home if native_home.exists() or not legacy_home.exists() else legacy_home
+
     env_path = Path(env_home)
     try:
         env_path.resolve().relative_to(native_home.resolve())
-        # HERMES_HOME is under ~/.hermes (normal or profile mode)
         return native_home
+    except ValueError:
+        pass
+    try:
+        env_path.resolve().relative_to(legacy_home.resolve())
+        return legacy_home
     except ValueError:
         pass
 
     # Docker / custom deployment.
-    # Check if this is a profile path: <root>/profiles/<name>
-    # If the immediate parent dir is named "profiles", the root is
-    # the grandparent — this covers Docker profiles correctly.
     if env_path.parent.name == "profiles":
         return env_path.parent.parent
 
-    # Not a profile path — HERMES_HOME itself is the root
     return env_path
 
 
@@ -61,9 +88,13 @@ def get_optional_skills_dir(default: Path | None = None) -> Path:
     """Return the optional-skills directory, honoring package-manager wrappers.
 
     Packaged installs may ship ``optional-skills`` outside the Python package
-    tree and expose it via ``HERMES_OPTIONAL_SKILLS``.
+    tree and expose it via ``NIUCLAW_OPTIONAL_SKILLS`` (or ``HERMES_OPTIONAL_SKILLS``
+    for backward compat).
     """
-    override = os.getenv("HERMES_OPTIONAL_SKILLS", "").strip()
+    override = (
+        os.getenv("NIUCLAW_OPTIONAL_SKILLS", "").strip()
+        or os.getenv("HERMES_OPTIONAL_SKILLS", "").strip()
+    )
     if override:
         return Path(override)
     if default is not None:
@@ -93,16 +124,16 @@ def get_hermes_dir(new_subpath: str, old_name: str) -> Path:
 
 
 def display_hermes_home() -> str:
-    """Return a user-friendly display string for the current HERMES_HOME.
+    """Return a user-friendly display string for the current home directory.
 
     Uses ``~/`` shorthand for readability::
 
-        default:  ``~/.hermes``
-        profile:  ``~/.hermes/profiles/coder``
-        custom:   ``/opt/hermes-custom``
+        default:  ``~/.niuclaw`` (or ``~/.hermes`` legacy)
+        profile:  ``~/.niuclaw/profiles/coder``
+        custom:   ``/opt/niuclaw-custom``
 
     Use this in **user-facing** print/log messages instead of hardcoding
-    ``~/.hermes``.  For code that needs a real ``Path``, use
+    ``~/.niuclaw``.  For code that needs a real ``Path``, use
     :func:`get_hermes_home` instead.
     """
     home = get_hermes_home()
@@ -129,7 +160,10 @@ def get_subprocess_home() -> str | None:
     Activation is directory-based: if the ``home/`` subdirectory doesn't
     exist, returns ``None`` and behavior is unchanged.
     """
-    hermes_home = os.getenv("HERMES_HOME")
+    hermes_home = (
+        os.getenv("NIUCLAW_HOME", "").strip()
+        or os.getenv("HERMES_HOME", "").strip()
+    )
     if not hermes_home:
         return None
     profile_home = os.path.join(hermes_home, "home")
@@ -269,7 +303,7 @@ def apply_ipv4_preference(force: bool = False) -> None:
     import socket
 
     # Guard against double-patching
-    if getattr(socket.getaddrinfo, "_hermes_ipv4_patched", False):
+    if getattr(socket.getaddrinfo, "_niuclaw_ipv4_patched", False):
         return
 
     _original_getaddrinfo = socket.getaddrinfo
@@ -285,7 +319,7 @@ def apply_ipv4_preference(force: bool = False) -> None:
                 return _original_getaddrinfo(host, port, family, type, proto, flags)
         return _original_getaddrinfo(host, port, family, type, proto, flags)
 
-    _ipv4_getaddrinfo._hermes_ipv4_patched = True  # type: ignore[attr-defined]
+    _ipv4_getaddrinfo._niuclaw_ipv4_patched = True  # type: ignore[attr-defined]
     socket.getaddrinfo = _ipv4_getaddrinfo  # type: ignore[assignment]
 
 

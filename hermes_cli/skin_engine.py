@@ -1,7 +1,7 @@
-"""Hermes CLI skin/theme engine.
+"""NiuClaw CLI skin/theme engine.
 
 A data-driven skin system that lets users customize the CLI's visual appearance.
-Skins are defined as YAML files in ~/.hermes/skins/ or as built-in presets.
+Skins are defined as YAML files in ~/.niuclaw/skins/ or as built-in presets.
 No code changes are needed to add a new skin.
 
 SKIN YAML SCHEMA
@@ -80,26 +80,27 @@ USAGE
     from hermes_cli.skin_engine import get_active_skin, list_skins, set_active_skin
 
     skin = get_active_skin()
-    print(skin.colors["banner_title"])    # "#FFD700"
-    print(skin.get_branding("agent_name"))  # "Hermes Agent"
+    print(skin.colors["banner_title"])    # "#00BCD4"
+    print(skin.get_branding("agent_name"))  # "NiuClaw Agent"
 
     set_active_skin("ares")               # Switch to built-in ares skin
-    set_active_skin("mytheme")            # Switch to user skin from ~/.hermes/skins/
+    set_active_skin("mytheme")            # Switch to user skin from ~/.niuclaw/skins/
 
 BUILT-IN SKINS
 ==============
 
-- ``default`` — Classic Hermes gold/kawaii (the current look)
-- ``ares``    — Crimson/bronze war-god theme with custom spinner wings
-- ``mono``    — Clean grayscale monochrome
-- ``slate``   — Cool blue developer-focused theme
+- ``niuclaw``  — Teal/cyan NiuClaw theme (the default)
+- ``default``  — Classic Hermes gold/kawaii (legacy)
+- ``ares``     — Crimson/bronze war-god theme with custom spinner wings
+- ``mono``     — Clean grayscale monochrome
+- ``slate``    — Cool blue developer-focused theme
 - ``daylight`` — Light background theme with dark text and blue accents
 - ``warm-lightmode`` — Warm brown/gold text for light terminal backgrounds
 
 USER SKINS
 ==========
 
-Drop a YAML file in ``~/.hermes/skins/<name>.yaml`` following the schema above.
+Drop a YAML file in ``~/.niuclaw/skins/<name>.yaml`` following the schema above.
 Activate with ``/skin <name>`` in the CLI or ``display.skin: <name>`` in config.yaml.
 """
 
@@ -153,9 +154,40 @@ class SkinConfig:
 # =============================================================================
 
 _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
+    "niuclaw": {
+        "name": "niuclaw",
+        "description": "NiuClaw — teal and cyan (default)",
+        "colors": {
+            "banner_border": "#00838F",
+            "banner_title": "#00BCD4",
+            "banner_accent": "#0097A7",
+            "banner_dim": "#006064",
+            "banner_text": "#E0F7FA",
+            "ui_accent": "#0097A7",
+            "ui_label": "#00BCD4",
+            "ui_ok": "#4caf50",
+            "ui_error": "#FF5252",
+            "ui_warn": "#ffa726",
+            "prompt": "#E0F7FA",
+            "input_rule": "#00838F",
+            "response_border": "#00BCD4",
+            "session_label": "#00BCD4",
+            "session_border": "#006064",
+        },
+        "spinner": {},
+        "branding": {
+            "agent_name": "NiuClaw Agent",
+            "welcome": "Welcome to NiuClaw Agent! Type your message or /help for commands.",
+            "goodbye": "Claws retracted! ◆",
+            "response_label": " ◆ NiuClaw ",
+            "prompt_symbol": "◆ ❯ ",
+            "help_header": "◆ Available Commands",
+        },
+        "tool_prefix": "┊",
+    },
     "default": {
         "name": "default",
-        "description": "Classic Hermes — gold and kawaii",
+        "description": "Classic Hermes — gold and kawaii (legacy)",
         "colors": {
             "banner_border": "#CD7F32",
             "banner_title": "#FFD700",
@@ -587,7 +619,7 @@ _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
 # =============================================================================
 
 _active_skin: Optional[SkinConfig] = None
-_active_skin_name: str = "default"
+_active_skin_name: str = "niuclaw"
 
 
 def _skins_dir() -> Path:
@@ -610,8 +642,8 @@ def _load_skin_from_yaml(path: Path) -> Optional[Dict[str, Any]]:
 
 def _build_skin_config(data: Dict[str, Any]) -> SkinConfig:
     """Build a SkinConfig from a raw dict (built-in or loaded from YAML)."""
-    # Start with default values as base for missing keys
-    default = _BUILTIN_SKINS["default"]
+    # Start with niuclaw values as base for missing keys
+    default = _BUILTIN_SKINS["niuclaw"]
     colors = dict(default.get("colors", {}))
     colors.update(data.get("colors", {}))
     spinner = dict(default.get("spinner", {}))
@@ -677,9 +709,9 @@ def load_skin(name: str) -> SkinConfig:
     if name in _BUILTIN_SKINS:
         return _build_skin_config(_BUILTIN_SKINS[name])
 
-    # Fallback to default
-    logger.warning("Skin '%s' not found, using default", name)
-    return _build_skin_config(_BUILTIN_SKINS["default"])
+    # Fallback to niuclaw
+    logger.warning("Skin '%s' not found, using niuclaw", name)
+    return _build_skin_config(_BUILTIN_SKINS["niuclaw"])
 
 
 def get_active_skin() -> SkinConfig:
@@ -711,11 +743,11 @@ def init_skin_from_config(config: dict) -> None:
     display = config.get("display") or {}
     if not isinstance(display, dict):
         display = {}
-    skin_name = display.get("skin", "default")
+    skin_name = display.get("skin", "niuclaw")
     if isinstance(skin_name, str) and skin_name.strip():
         set_active_skin(skin_name.strip())
     else:
-        set_active_skin("default")
+        set_active_skin("niuclaw")
 
 
 # =============================================================================
@@ -741,7 +773,7 @@ def get_active_help_header(fallback: str = "(^_^)? Available Commands") -> str:
 
 
 
-def get_active_goodbye(fallback: str = "Goodbye! ⚕") -> str:
+def get_active_goodbye(fallback: str = "Claws retracted! ◆") -> str:
     """Get the goodbye line from the active skin."""
     try:
         return get_active_skin().get_branding("goodbye", fallback)

@@ -3,12 +3,12 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "hermes-agent"
+name = "niuclaw-agent"
 version = "0.10.0"
-description = "The self-improving AI agent — creates skills from experience, improves them during use, and runs anywhere"
+description = "NiuClaw Agent — a self-improving AI agent that creates skills from experience, improves them during use, and runs anywhere"
 readme = "README.md"
 requires-python = ">=3.11"
-authors = [{ name = "Nous Research" }]
+authors = [{ name = "NiuClaw" }]
 license = { text = "MIT" }
 dependencies = [
   # Core — pinned to known-good ranges to limit supply chain attack surface
@@ -115,8 +115,11 @@ all = [
 ]
 
 [project.scripts]
-hermes = "hermes_cli.main:main"
+niuclaw = "hermes_cli.main:main"
+hermes = "hermes_cli.main:main"  # backward compat alias
+niuclaw-agent = "run_agent:main"
 hermes-agent = "run_agent:main"
+niuclaw-acp = "acp_adapter.entry:main"
 hermes-acp = "acp_adapter.entry:main"
 
 [tool.setuptools]

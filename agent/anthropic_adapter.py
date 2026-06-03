@@ -1345,10 +1345,10 @@ def build_anthropic_kwargs(
         for block in system:
             if isinstance(block, dict) and block.get("type") == "text":
                 text = block.get("text", "")
-                text = text.replace("Hermes Agent", "Claude Code")
-                text = text.replace("Hermes agent", "Claude Code")
-                text = text.replace("hermes-agent", "claude-code")
-                text = text.replace("Nous Research", "Anthropic")
+                text = text.replace("NiuClaw Agent", "Claude Code")
+                text = text.replace("NiuClaw agent", "Claude Code")
+                text = text.replace("niuclaw-agent", "claude-code")
+                text = text.replace("NiuClaw", "Anthropic")
                 block["text"] = text
 
         # 3. Prefix tool names with mcp_ (Claude Code convention)

@@ -79,38 +79,38 @@ function mix(a: string, b: string, t: number) {
 // ── Defaults ─────────────────────────────────────────────────────────
 
 const BRAND: ThemeBrand = {
-  name: 'Hermes Agent',
-  icon: '⚕',
-  prompt: '❯',
+  name: 'NiuClaw Agent',
+  icon: '◆',
+  prompt: '◆ ❯',
   welcome: 'Type your message or /help for commands.',
-  goodbye: 'Goodbye! ⚕',
+  goodbye: 'Claws retracted! ◆',
   tool: '┊',
-  helpHeader: '(^_^)? Commands'
+  helpHeader: '◆ Commands'
 }
 
 export const DARK_THEME: Theme = {
   color: {
-    gold: '#FFD700',
-    amber: '#FFBF00',
-    bronze: '#CD7F32',
-    cornsilk: '#FFF8DC',
-    dim: '#B8860B',
+    gold: '#00BCD4',
+    amber: '#0097A7',
+    bronze: '#00838F',
+    cornsilk: '#E0F7FA',
+    dim: '#006064',
     completionBg: '#FFFFFF',
-    completionCurrentBg: mix('#FFFFFF', '#FFBF00', 0.25),
+    completionCurrentBg: mix('#FFFFFF', '#0097A7', 0.25),
 
-    label: '#DAA520',
+    label: '#00BCD4',
     ok: '#4caf50',
     error: '#ef5350',
     warn: '#ffa726',
 
-    prompt: '#FFF8DC',
-    sessionLabel: '#B8860B',
-    sessionBorder: '#B8860B',
+    prompt: '#E0F7FA',
+    sessionLabel: '#006064',
+    sessionBorder: '#006064',
 
     statusBg: '#1a1a2e',
     statusFg: '#C0C0C0',
     statusGood: '#8FBC8F',
-    statusWarn: '#FFD700',
+    statusWarn: '#00BCD4',
     statusBad: '#FF8C00',
     statusCritical: '#FF6B6B',
     selectionBg: '#3a3a55',
