@@ -1,2 +1,50 @@
 # Auto-generated files — collapse diffs and exclude from language stats
 web/package-lock.json linguist-generated=true
+
+# === NiuMa brand-preservation merge strategy ===
+# When merging from upstream, these files keep OUR version (brand-sensitive).
+# How to sync:
+#   1. git fetch upstream && git merge upstream/main
+#   2. Brand files auto-resolve to "ours"; other conflicts resolve manually
+
+# Central brand configuration
+hermes_cli/branding.py merge=ours
+
+# Brand-sensitive Python
+hermes_cli/banner.py merge=ours
+hermes_cli/default_soul.py merge=ours
+hermes_cli/skin_engine.py merge=ours
+hermes_cli/__init__.py merge=ours
+hermes_cli/web_server.py merge=ours
+hermes_constants.py merge=ours
+
+# Agent identity / system prompts
+agent/prompt_builder.py merge=ours
+agent/anthropic_adapter.py merge=ours
+agent/auxiliary_client.py merge=ours
+agent/copilot_acp_client.py merge=ours
+tools/xai_http.py merge=ours
+
+# ACP adapter
+acp_adapter/entry.py merge=ours
+acp_adapter/server.py merge=ours
+acp_registry/agent.json merge=ours
+
+# Install scripts
+scripts/install.ps1 merge=ours
+scripts/install.sh merge=ours
+
+# TUI frontend
+ui-tui/src/theme.ts merge=ours
+ui-tui/src/banner.ts merge=ours
+ui-tui/src/bootBanner.ts merge=ours
+ui-tui/src/components/branding.tsx merge=ours
+
+# Web dashboard
+web/index.html merge=ours
+web/src/i18n/en.ts merge=ours
+web/src/i18n/zh.ts merge=ours
+web/src/i18n/context.tsx merge=ours
+
+# Package metadata
+pyproject.toml merge=ours
