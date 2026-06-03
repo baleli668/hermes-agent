@@ -16,8 +16,8 @@ const LOGO = [
 const GRADIENT = [TEAL, TEAL, CYAN, CYAN, DARKTEAL, DIM] as const
 const LOGO_WIDTH = 70
 
-const TAGLINE = `${DIM}◆ NiuClaw · Claw into the future${RESET}`
-const FALLBACK = `\x1b[1m${TEAL}◆ NIUCLAW${RESET}`
+const TAGLINE = `${DIM}◆ NiuMa · Gallop into the future${RESET}`
+const FALLBACK = `\x1b[1m${TEAL}◆ NIUMA${RESET}`
 
 export function bootBanner(cols: number = process.stdout.columns || 80): string {
   const body = cols >= LOGO_WIDTH ? LOGO.map((text, i) => `${GRADIENT[i]}${text}${RESET}`).join('\n') : FALLBACK

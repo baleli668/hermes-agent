@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "name": "niuclaw-agent",
-  "display_name": "NiuClaw Agent",
-  "description": "AI agent by NiuClaw with 90+ tools, persistent memory, and multi-platform support",
+  "name": "niuma-agent",
+  "display_name": "NiuMa Agent",
+  "description": "AI agent by NiuMa with 90+ tools, persistent memory, and multi-platform support",
   "icon": "icon.svg",
   "distribution": {
     "type": "command",
-    "command": "niuclaw",
+    "command": "niuma",
     "args": ["acp"]
   }
 }

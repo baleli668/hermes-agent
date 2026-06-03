@@ -1,4 +1,4 @@
-"""Shared constants for NiuClaw Agent.
+"""Shared constants for NiuMa Agent.
 
 Import-safe module with no dependencies — can be imported from anywhere
 without risk of circular imports.
@@ -9,42 +9,42 @@ from pathlib import Path
 
 
 def get_hermes_home() -> Path:
-    """Return the agent home directory (default: ~/.niuclaw).
+    """Return the agent home directory (default: ~/.niuma).
 
     Resolution order:
-    1. ``NIUCLAW_HOME`` env var (takes priority)
+    1. ``NIUMA_HOME`` env var (takes priority)
     2. ``HERMES_HOME`` env var (backward compat with upstream)
-    3. ``~/.niuclaw`` if it already exists on disk
+    3. ``~/.niuma`` if it already exists on disk
     4. ``~/.hermes`` if it exists on disk (legacy install)
-    5. ``~/.niuclaw`` (new default for fresh installs)
+    5. ``~/.niuma`` (new default for fresh installs)
 
     This is the single source of truth — all other copies should import this.
     """
-    # Prefer NIUCLAW_HOME, fall back to HERMES_HOME for backward compat
+    # Prefer NIUMA_HOME, fall back to HERMES_HOME for backward compat
     val = (
-        os.environ.get("NIUCLAW_HOME", "").strip()
+        os.environ.get("NIUMA_HOME", "").strip()
         or os.environ.get("HERMES_HOME", "").strip()
     )
     if val:
         return Path(val)
 
     # No env var set — check disk for existing directories
-    niuclaw_default = Path.home() / ".niuclaw"
+    niuma_default = Path.home() / ".niuma"
     hermes_default = Path.home() / ".hermes"
 
-    if niuclaw_default.exists():
-        return niuclaw_default
+    if niuma_default.exists():
+        return niuma_default
     if hermes_default.exists():
         return hermes_default
-    return niuclaw_default
+    return niuma_default
 
 
 def get_default_hermes_root() -> Path:
     """Return the root agent directory for profile-level operations.
 
-    In standard deployments this is ``~/.niuclaw`` (or ``~/.hermes`` legacy).
+    In standard deployments this is ``~/.niuma`` (or ``~/.hermes`` legacy).
 
-    In Docker or custom deployments where ``NIUCLAW_HOME`` or ``HERMES_HOME``
+    In Docker or custom deployments where ``NIUMA_HOME`` or ``HERMES_HOME``
     points outside the home directory (e.g. ``/opt/data``), returns the
     env-var value directly — that IS the root.
 
@@ -54,15 +54,15 @@ def get_default_hermes_root() -> Path:
 
     Import-safe — no dependencies beyond stdlib.
     """
-    native_home = Path.home() / ".niuclaw"
+    native_home = Path.home() / ".niuma"
     legacy_home = Path.home() / ".hermes"
 
     env_home = (
-        os.environ.get("NIUCLAW_HOME", "").strip()
+        os.environ.get("NIUMA_HOME", "").strip()
         or os.environ.get("HERMES_HOME", "").strip()
     )
     if not env_home:
-        # Prefer .niuclaw if it exists, else .hermes if it exists
+        # Prefer .niuma if it exists, else .hermes if it exists
         return native_home if native_home.exists() or not legacy_home.exists() else legacy_home
 
     env_path = Path(env_home)
@@ -88,11 +88,11 @@ def get_optional_skills_dir(default: Path | None = None) -> Path:
     """Return the optional-skills directory, honoring package-manager wrappers.
 
     Packaged installs may ship ``optional-skills`` outside the Python package
-    tree and expose it via ``NIUCLAW_OPTIONAL_SKILLS`` (or ``HERMES_OPTIONAL_SKILLS``
+    tree and expose it via ``NIUMA_OPTIONAL_SKILLS`` (or ``HERMES_OPTIONAL_SKILLS``
     for backward compat).
     """
     override = (
-        os.getenv("NIUCLAW_OPTIONAL_SKILLS", "").strip()
+        os.getenv("NIUMA_OPTIONAL_SKILLS", "").strip()
         or os.getenv("HERMES_OPTIONAL_SKILLS", "").strip()
     )
     if override:
@@ -128,12 +128,12 @@ def display_hermes_home() -> str:
 
     Uses ``~/`` shorthand for readability::
 
-        default:  ``~/.niuclaw`` (or ``~/.hermes`` legacy)
-        profile:  ``~/.niuclaw/profiles/coder``
-        custom:   ``/opt/niuclaw-custom``
+        default:  ``~/.niuma`` (or ``~/.hermes`` legacy)
+        profile:  ``~/.niuma/profiles/coder``
+        custom:   ``/opt/niuma-custom``
 
     Use this in **user-facing** print/log messages instead of hardcoding
-    ``~/.niuclaw``.  For code that needs a real ``Path``, use
+    ``~/.niuma``.  For code that needs a real ``Path``, use
     :func:`get_hermes_home` instead.
     """
     home = get_hermes_home()
@@ -161,7 +161,7 @@ def get_subprocess_home() -> str | None:
     exist, returns ``None`` and behavior is unchanged.
     """
     hermes_home = (
-        os.getenv("NIUCLAW_HOME", "").strip()
+        os.getenv("NIUMA_HOME", "").strip()
         or os.getenv("HERMES_HOME", "").strip()
     )
     if not hermes_home:
@@ -303,7 +303,7 @@ def apply_ipv4_preference(force: bool = False) -> None:
     import socket
 
     # Guard against double-patching
-    if getattr(socket.getaddrinfo, "_niuclaw_ipv4_patched", False):
+    if getattr(socket.getaddrinfo, "_niuma_ipv4_patched", False):
         return
 
     _original_getaddrinfo = socket.getaddrinfo
@@ -319,7 +319,7 @@ def apply_ipv4_preference(force: bool = False) -> None:
                 return _original_getaddrinfo(host, port, family, type, proto, flags)
         return _original_getaddrinfo(host, port, family, type, proto, flags)
 
-    _ipv4_getaddrinfo._niuclaw_ipv4_patched = True  # type: ignore[attr-defined]
+    _ipv4_getaddrinfo._niuma_ipv4_patched = True  # type: ignore[attr-defined]
     socket.getaddrinfo = _ipv4_getaddrinfo  # type: ignore[assignment]
 
 

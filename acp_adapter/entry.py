@@ -61,7 +61,7 @@ def main() -> None:
     _load_env()
 
     logger = logging.getLogger(__name__)
-    logger.info("Starting niuclaw-agent ACP adapter")
+    logger.info("Starting niuma-agent ACP adapter")
 
     # Ensure the project root is on sys.path so ``from run_agent import AIAgent`` works
     project_root = str(Path(__file__).resolve().parent.parent)

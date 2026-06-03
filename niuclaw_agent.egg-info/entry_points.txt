@@ -1,0 +1,7 @@
+[console_scripts]
+hermes = hermes_cli.main:main
+hermes-acp = acp_adapter.entry:main
+hermes-agent = run_agent:main
+niuclaw = hermes_cli.main:main
+niuclaw-acp = acp_adapter.entry:main
+niuclaw-agent = run_agent:main

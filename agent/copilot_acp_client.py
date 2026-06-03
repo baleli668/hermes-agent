@@ -462,8 +462,8 @@ class CopilotACPClient:
                         }
                     },
                     "clientInfo": {
-                        "name": "niuclaw-agent",
-                        "title": "NiuClaw Agent",
+                        "name": "niuma-agent",
+                        "title": "NiuMa Agent",
                         "version": "0.0.0",
                     },
                 },

@@ -1,5 +1,5 @@
 # ============================================================================
-# NiuClaw Agent Installer for Windows
+# NiuMa Agent Installer for Windows
 # ============================================================================
 # Installation script for Windows (PowerShell).
 # Uses uv for fast Python provisioning and package management.
@@ -16,8 +16,8 @@ param(
     [switch]$NoVenv,
     [switch]$SkipSetup,
     [string]$Branch = "main",
-    [string]$HermesHome = "$env:LOCALAPPDATA\niuclaw",
-    [string]$InstallDir = "$env:LOCALAPPDATA\niuclaw\niuclaw-agent"
+    [string]$HermesHome = "$env:LOCALAPPDATA\niuma",
+    [string]$InstallDir = "$env:LOCALAPPDATA\niuma\niuma-agent"
 )
 
 $ErrorActionPreference = "Stop"
@@ -38,9 +38,9 @@ $NodeVersion = "22"
 function Write-Banner {
     Write-Host ""
     Write-Host "┌─────────────────────────────────────────────────────────┐" -ForegroundColor Cyan
-    Write-Host "│             ◆ NiuClaw Agent Installer                   │" -ForegroundColor Cyan
+    Write-Host "│             ◆ NiuMa Agent Installer                   │" -ForegroundColor Cyan
     Write-Host "├─────────────────────────────────────────────────────────┤" -ForegroundColor Cyan
-    Write-Host "│  Claw into the future — an open source AI agent.        │" -ForegroundColor Cyan
+    Write-Host "│  Gallop into the future — an open source AI agent.        │" -ForegroundColor Cyan
     Write-Host "└─────────────────────────────────────────────────────────┘" -ForegroundColor Cyan
     Write-Host ""
 }
@@ -244,7 +244,7 @@ function Test-Node {
         } catch { }
     }
 
-    # Fallback: download binary zip to ~/.niuclaw/node/
+    # Fallback: download binary zip to ~/.niuma/node/
     Write-Info "Downloading Node.js $NodeVersion binary..."
     try {
         $arch = if ([Environment]::Is64BitOperatingSystem) { "x64" } else { "x86" }
@@ -268,7 +268,7 @@ function Test-Node {
                 $env:Path = "$HermesHome\node;$env:Path"
 
                 $version = & "$HermesHome\node\node.exe" --version
-                Write-Success "Node.js $version installed to ~/.niuclaw/node/"
+                Write-Success "Node.js $version installed to ~/.niuma/node/"
                 $script:HasNode = $true
 
                 Remove-Item -Force $tmpZip -ErrorAction SilentlyContinue
@@ -603,7 +603,7 @@ function Set-PathVariable {
     
     # Set HERMES_HOME so the Python code finds config/data in the right place.
     # Only needed on Windows where we install to %LOCALAPPDATA%\hermes instead
-    # of the Unix default ~/.niuclaw
+    # of the Unix default ~/.niuma
     $currentHermesHome = [Environment]::GetEnvironmentVariable("HERMES_HOME", "User")
     if (-not $currentHermesHome -or $currentHermesHome -ne $HermesHome) {
         [Environment]::SetEnvironmentVariable("HERMES_HOME", $HermesHome, "User")
@@ -620,7 +620,7 @@ function Set-PathVariable {
 function Copy-ConfigTemplates {
     Write-Info "Setting up configuration files..."
     
-    # Create ~/.niuclaw directory structure
+    # Create ~/.niuma directory structure
     New-Item -ItemType Directory -Force -Path "$HermesHome\cron" | Out-Null
     New-Item -ItemType Directory -Force -Path "$HermesHome\sessions" | Out-Null
     New-Item -ItemType Directory -Force -Path "$HermesHome\logs" | Out-Null
@@ -638,13 +638,13 @@ function Copy-ConfigTemplates {
         $examplePath = "$InstallDir\.env.example"
         if (Test-Path $examplePath) {
             Copy-Item $examplePath $envPath
-            Write-Success "Created ~/.niuclaw/.env from template"
+            Write-Success "Created ~/.niuma/.env from template"
         } else {
             New-Item -ItemType File -Force -Path $envPath | Out-Null
-            Write-Success "Created ~/.niuclaw/.env"
+            Write-Success "Created ~/.niuma/.env"
         }
     } else {
-        Write-Info "~/.niuclaw/.env already exists, keeping it"
+        Write-Info "~/.niuma/.env already exists, keeping it"
     }
     
     # Create config.yaml
@@ -653,22 +653,22 @@ function Copy-ConfigTemplates {
         $examplePath = "$InstallDir\cli-config.yaml.example"
         if (Test-Path $examplePath) {
             Copy-Item $examplePath $configPath
-            Write-Success "Created ~/.niuclaw/config.yaml from template"
+            Write-Success "Created ~/.niuma/config.yaml from template"
         }
     } else {
-        Write-Info "~/.niuclaw/config.yaml already exists, keeping it"
+        Write-Info "~/.niuma/config.yaml already exists, keeping it"
     }
     
     # Create SOUL.md if it doesn't exist (global persona file)
     $soulPath = "$HermesHome\SOUL.md"
     if (-not (Test-Path $soulPath)) {
         @"
-# NiuClaw Agent Persona
+# NiuMa Agent Persona
 
 <!--
 This file defines the agent's personality and tone.
 The agent will embody whatever you write here.
-Edit this to customize how NiuClaw communicates with you.
+Edit this to customize how NiuMa communicates with you.
 
 Examples:
   - "You are a warm, playful assistant who uses kaomoji occasionally."
@@ -679,25 +679,25 @@ This file is loaded fresh each message -- no restart needed.
 Delete the contents (or this file) to use the default personality.
 -->
 "@ | Set-Content -Path $soulPath -Encoding UTF8
-        Write-Success "Created ~/.niuclaw/SOUL.md (edit to customize personality)"
+        Write-Success "Created ~/.niuma/SOUL.md (edit to customize personality)"
     }
     
-    Write-Success "Configuration directory ready: ~/.niuclaw/"
+    Write-Success "Configuration directory ready: ~/.niuma/"
     
-    # Seed bundled skills into ~/.niuclaw/skills/ (manifest-based, one-time per skill)
-    Write-Info "Syncing bundled skills to ~/.niuclaw/skills/ ..."
+    # Seed bundled skills into ~/.niuma/skills/ (manifest-based, one-time per skill)
+    Write-Info "Syncing bundled skills to ~/.niuma/skills/ ..."
     $pythonExe = "$InstallDir\venv\Scripts\python.exe"
     if (Test-Path $pythonExe) {
         try {
             & $pythonExe "$InstallDir\tools\skills_sync.py" 2>$null
-            Write-Success "Skills synced to ~/.niuclaw/skills/"
+            Write-Success "Skills synced to ~/.niuma/skills/"
         } catch {
             # Fallback: simple directory copy
             $bundledSkills = "$InstallDir\skills"
             $userSkills = "$HermesHome\skills"
             if ((Test-Path $bundledSkills) -and -not (Get-ChildItem $userSkills -Exclude '.bundled_manifest' -ErrorAction SilentlyContinue)) {
                 Copy-Item -Path "$bundledSkills\*" -Destination $userSkills -Recurse -Force -ErrorAction SilentlyContinue
-                Write-Success "Skills copied to ~/.niuclaw/skills/"
+                Write-Success "Skills copied to ~/.niuma/skills/"
             }
         }
     }

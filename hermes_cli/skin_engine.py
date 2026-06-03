@@ -1,7 +1,7 @@
-"""NiuClaw CLI skin/theme engine.
+"""NiuMa CLI skin/theme engine.
 
 A data-driven skin system that lets users customize the CLI's visual appearance.
-Skins are defined as YAML files in ~/.niuclaw/skins/ or as built-in presets.
+Skins are defined as YAML files in ~/.niuma/skins/ or as built-in presets.
 No code changes are needed to add a new skin.
 
 SKIN YAML SCHEMA
@@ -81,15 +81,15 @@ USAGE
 
     skin = get_active_skin()
     print(skin.colors["banner_title"])    # "#00BCD4"
-    print(skin.get_branding("agent_name"))  # "NiuClaw Agent"
+    print(skin.get_branding("agent_name"))  # "NiuMa Agent"
 
     set_active_skin("ares")               # Switch to built-in ares skin
-    set_active_skin("mytheme")            # Switch to user skin from ~/.niuclaw/skins/
+    set_active_skin("mytheme")            # Switch to user skin from ~/.niuma/skins/
 
 BUILT-IN SKINS
 ==============
 
-- ``niuclaw``  — Teal/cyan NiuClaw theme (the default)
+- ``niuma``  — Teal/cyan NiuMa theme (the default)
 - ``default``  — Classic Hermes gold/kawaii (legacy)
 - ``ares``     — Crimson/bronze war-god theme with custom spinner wings
 - ``mono``     — Clean grayscale monochrome
@@ -100,7 +100,7 @@ BUILT-IN SKINS
 USER SKINS
 ==========
 
-Drop a YAML file in ``~/.niuclaw/skins/<name>.yaml`` following the schema above.
+Drop a YAML file in ``~/.niuma/skins/<name>.yaml`` following the schema above.
 Activate with ``/skin <name>`` in the CLI or ``display.skin: <name>`` in config.yaml.
 """
 
@@ -154,9 +154,9 @@ class SkinConfig:
 # =============================================================================
 
 _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
-    "niuclaw": {
-        "name": "niuclaw",
-        "description": "NiuClaw — teal and cyan (default)",
+    "niuma": {
+        "name": "niuma",
+        "description": "NiuMa — teal and cyan (default)",
         "colors": {
             "banner_border": "#00838F",
             "banner_title": "#00BCD4",
@@ -176,10 +176,10 @@ _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
         },
         "spinner": {},
         "branding": {
-            "agent_name": "NiuClaw Agent",
-            "welcome": "Welcome to NiuClaw Agent! Type your message or /help for commands.",
-            "goodbye": "Claws retracted! ◆",
-            "response_label": " ◆ NiuClaw ",
+            "agent_name": "NiuMa Agent",
+            "welcome": "Welcome to NiuMa Agent! Type your message or /help for commands.",
+            "goodbye": "Gallop on! ◆",
+            "response_label": " ◆ NiuMa ",
             "prompt_symbol": "◆ ❯ ",
             "help_header": "◆ Available Commands",
         },
@@ -619,7 +619,7 @@ _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
 # =============================================================================
 
 _active_skin: Optional[SkinConfig] = None
-_active_skin_name: str = "niuclaw"
+_active_skin_name: str = "niuma"
 
 
 def _skins_dir() -> Path:
@@ -642,8 +642,8 @@ def _load_skin_from_yaml(path: Path) -> Optional[Dict[str, Any]]:
 
 def _build_skin_config(data: Dict[str, Any]) -> SkinConfig:
     """Build a SkinConfig from a raw dict (built-in or loaded from YAML)."""
-    # Start with niuclaw values as base for missing keys
-    default = _BUILTIN_SKINS["niuclaw"]
+    # Start with niuma values as base for missing keys
+    default = _BUILTIN_SKINS["niuma"]
     colors = dict(default.get("colors", {}))
     colors.update(data.get("colors", {}))
     spinner = dict(default.get("spinner", {}))
@@ -709,9 +709,9 @@ def load_skin(name: str) -> SkinConfig:
     if name in _BUILTIN_SKINS:
         return _build_skin_config(_BUILTIN_SKINS[name])
 
-    # Fallback to niuclaw
-    logger.warning("Skin '%s' not found, using niuclaw", name)
-    return _build_skin_config(_BUILTIN_SKINS["niuclaw"])
+    # Fallback to niuma
+    logger.warning("Skin '%s' not found, using niuma", name)
+    return _build_skin_config(_BUILTIN_SKINS["niuma"])
 
 
 def get_active_skin() -> SkinConfig:
@@ -743,11 +743,11 @@ def init_skin_from_config(config: dict) -> None:
     display = config.get("display") or {}
     if not isinstance(display, dict):
         display = {}
-    skin_name = display.get("skin", "niuclaw")
+    skin_name = display.get("skin", "niuma")
     if isinstance(skin_name, str) and skin_name.strip():
         set_active_skin(skin_name.strip())
     else:
-        set_active_skin("niuclaw")
+        set_active_skin("niuma")
 
 
 # =============================================================================
@@ -773,7 +773,7 @@ def get_active_help_header(fallback: str = "(^_^)? Available Commands") -> str:
 
 
 
-def get_active_goodbye(fallback: str = "Claws retracted! ◆") -> str:
+def get_active_goodbye(fallback: str = "Gallop on! ◆") -> str:
     """Get the goodbye line from the active skin."""
     try:
         return get_active_skin().get_branding("goodbye", fallback)

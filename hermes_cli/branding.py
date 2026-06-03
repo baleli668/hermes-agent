@@ -1,4 +1,4 @@
-"""NiuClaw brand configuration — single source of truth for all product branding.
+"""NiuMa brand configuration — single source of truth for all product branding.
 
 Import-safe module with no project dependencies.  Every user-facing surface
 (CLI, TUI, web dashboard, install scripts) reads from here so that upstream
@@ -9,25 +9,25 @@ from __future__ import annotations
 
 # ── Product identity ─────────────────────────────────────────────────────────
 
-PRODUCT_NAME = "NiuClaw"
-PRODUCT_NAME_FULL = "NiuClaw Agent"
-PRODUCT_SHORT = "NC"
-COMPANY_NAME = "NiuClaw"
+PRODUCT_NAME = "NiuMa"
+PRODUCT_NAME_FULL = "NiuMa Agent"
+PRODUCT_SHORT = "NM"
+COMPANY_NAME = "NiuMa"
 
-CLI_COMMAND = "niuclaw"
+CLI_COMMAND = "niuma"
 CLI_COMMAND_LEGACY = "hermes"  # kept as alias for backward compat
 
 # ── Paths & environment variables ────────────────────────────────────────────
 
-ENV_PREFIX = "NIUCLAW"
-ENV_HOME = "NIUCLAW_HOME"
+ENV_PREFIX = "NIUMA"
+ENV_HOME = "NIUMA_HOME"
 ENV_HOME_LEGACY = "HERMES_HOME"
 
-DATA_DIR_DEFAULT = ".niuclaw"
+DATA_DIR_DEFAULT = ".niuma"
 DATA_DIR_LEGACY = ".hermes"
 
 # Windows-specific paths
-WINDOWS_LOCALAPPDATA_SUBDIR = "niuclaw"
+WINDOWS_LOCALAPPDATA_SUBDIR = "niuma"
 WINDOWS_LEGACY_SUBDIR = "hermes"
 
 # ── GitHub / URLs ────────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ REPO_URL_HTTPS = f"https://github.com/{GITHUB_ORG}/{GITHUB_REPO}.git"
 REPO_URL_SSH = f"git@github.com:{GITHUB_ORG}/{GITHUB_REPO}.git"
 UPSTREAM_URL_HTTPS = f"https://github.com/{GITHUB_UPSTREAM_ORG}/{GITHUB_UPSTREAM_REPO}.git"
 
-DOMAIN = "niuclaw.com"
+DOMAIN = "niuma.com"
 DOCS_URL = f"https://{GITHUB_REPO}.{DOMAIN}/docs"
 
 # ── Color palette (teal/cyan — replaces gold #FFD700) ────────────────────────
@@ -61,27 +61,27 @@ ANSI_DIM = "\033[2;38;2;0;96;100m"         # dim #006064
 # ── Icon & tagline ───────────────────────────────────────────────────────────
 
 ICON = "◆"          # ◆ diamond
-TAGLINE = "Claw into the future"
+TAGLINE = "Gallop into the future"
 WELCOME_TEXT = f"Welcome to {PRODUCT_NAME_FULL}! Type your message or /help for commands."
-GOODBYE_TEXT = "Claws retracted! ◆"
+GOODBYE_TEXT = "Gallop on! ◆"
 
 # ── ASCII art ────────────────────────────────────────────────────────────────
 
-NIUCLAW_LOGO = r"""[bold #00BCD4]███╗   ██╗██╗██╗   ██╗ ██████╗██╗      █████╗ ██╗    ██╗[/]
-[bold #00BCD4]████╗  ██║██║██║   ██║██╔════╝██║     ██╔══██╗██║    ██║[/]
-[#0097A7]██╔██╗ ██║██║██║   ██║██║     ██║     ███████║██║ █╗ ██║[/]
-[#0097A7]██║╚██╗██║██║██║   ██║██║     ██║     ██╔══██║██║███╗██║[/]
-[#00838F]██║ ╚████║██║╚██████╔╝╚██████╗███████╗██║  ██║╚███╔███╔╝[/]
-[#006064]╚═╝  ╚═══╝╚═╝ ╚═════╝  ╚═════╝╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝[/]"""
+NIUMA_LOGO = r"""[bold #00BCD4]███╗   ██╗██╗██╗   ██╗███╗   ███╗ █████╗       █████╗  ██████╗ ███████╗███╗   ██╗████████╗[/]
+[bold #00BCD4]████╗  ██║██║██║   ██║████╗ ████║██╔══██╗      ██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝[/]
+[#0097A7]██╔██╗ ██║██║██║   ██║██╔████╔██║███████║█████╗███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║[/]
+[#0097A7]██║╚██╗██║██║██║   ██║██║╚██╔╝██║██╔══██║╚════╝██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║[/]
+[#00838F]██║ ╚████║██║╚██████╔╝██║ ╚═╝ ██║██║  ██║      ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║[/]
+[#006064]╚═╝  ╚═══╝╚═╝ ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝      ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝[/]"""
 
-NIUCLAW_HERO = r"""[#006064]                ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄[/]
+NIUMA_HERO = r"""[#006064]                ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄[/]
 [#006064]                █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█[/]
 [#00838F]                █  ╔╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╦╗  █[/]
 [#00838F]                █  ╚╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╩╝  █[/]
 [#0097A7]     ◆           █  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄  █           ◆[/]
 [#0097A7]                █  █▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█  █[/]
 [#00BCD4]                █  █▓◇◇◇◇◇◇◇◇◇◇◇◇◇▓█  █[/]
-[#00BCD4]                █  █▓◇◆ NIUCLAW ◆◇▓█  █[/]
+[#00BCD4]                █  █▓◇◆  NIUMA  ◆◇▓█  █[/]
 [#00BCD4]                █  █▓◇◇◇◇◇◇◇◇◇◇◇◇◇▓█  █[/]
 [#0097A7]                █  █▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓█  █[/]
 [#0097A7]     ◆           █  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀  █           ◆[/]
@@ -98,10 +98,10 @@ DEFAULT_SOUL = (
     "including file system operations, web search, code execution, and more. "
     "You communicate clearly and concisely, preferring direct answers over verbose explanations. "
     "When you make mistakes, you acknowledge them and correct course. "
-    "You are running inside the NiuClaw Agent framework — a self-improving AI agent platform."
+    "You are running inside the NiuMa Agent framework — a self-improving AI agent platform."
 )
 
 # ── Skin name constants ──────────────────────────────────────────────────────
 
-DEFAULT_SKIN_NAME = "niuclaw"
+DEFAULT_SKIN_NAME = "niuma"
 LEGACY_SKIN_NAME = "hermes-legacy"

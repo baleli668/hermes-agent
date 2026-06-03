@@ -1,14 +1,14 @@
 """
-NiuClaw CLI - Unified command-line interface for NiuClaw Agent.
+NiuMa CLI - Unified command-line interface for NiuMa Agent.
 
 Provides subcommands for:
-- niuclaw chat          - Interactive chat (same as ./niuclaw)
-- niuclaw gateway       - Run gateway in foreground
-- niuclaw gateway start - Start gateway service
-- niuclaw gateway stop  - Stop gateway service
-- niuclaw setup         - Interactive setup wizard
-- niuclaw status        - Show status of all components
-- niuclaw cron          - Manage cron jobs
+- niuma chat          - Interactive chat (same as ./niuma)
+- niuma gateway       - Run gateway in foreground
+- niuma gateway start - Start gateway service
+- niuma gateway stop  - Stop gateway service
+- niuma setup         - Interactive setup wizard
+- niuma status        - Show status of all components
+- niuma cron          - Manage cron jobs
 """
 
 __version__ = "0.10.0"

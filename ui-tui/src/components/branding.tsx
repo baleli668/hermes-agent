@@ -27,11 +27,11 @@ export function Banner({ t }: { t: Theme }) {
         <ArtLines lines={logoLines} />
       ) : (
         <Text bold color={t.color.gold}>
-          {t.brand.icon} NIUCLAW
+          {t.brand.icon} NIUMA
         </Text>
       )}
 
-      <Text color={t.color.dim}>{t.brand.icon} NiuClaw · Claw into the future</Text>
+      <Text color={t.color.dim}>{t.brand.icon} NiuMa · Gallop into the future</Text>
     </Box>
   )
 }
@@ -99,7 +99,7 @@ export function SessionPanel({ info, sid, t }: SessionPanelProps) {
 
           <Text color={t.color.amber}>
             {info.model.split('/').pop()}
-            <Text color={t.color.dim}> · NiuClaw</Text>
+            <Text color={t.color.dim}> · NiuMa</Text>
           </Text>
 
           <Text color={t.color.dim} wrap="truncate-end">

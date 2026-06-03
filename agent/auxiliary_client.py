@@ -169,15 +169,15 @@ _PROVIDER_VISION_MODELS: Dict[str, str] = {
 
 # OpenRouter app attribution headers
 _OR_HEADERS = {
-    "HTTP-Referer": "https://niuclaw-agent.niuclaw.com",
-    "X-OpenRouter-Title": "NiuClaw Agent",
+    "HTTP-Referer": "https://niuma-agent.niuma.com",
+    "X-OpenRouter-Title": "NiuMa Agent",
     "X-OpenRouter-Categories": "productivity,cli-agent",
 }
 
 # Nous Portal extra_body for product attribution.
 # Callers should pass this as extra_body in chat.completions.create()
 # when the auxiliary client is backed by Nous Portal.
-NOUS_EXTRA_BODY = {"tags": ["product=niuclaw-agent"]}
+NOUS_EXTRA_BODY = {"tags": ["product=niuma-agent"]}
 
 # Set at resolve time — True if the auxiliary client points to Nous Portal
 auxiliary_is_nous: bool = False

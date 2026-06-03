@@ -3,12 +3,12 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "niuclaw-agent"
+name = "niuma-agent"
 version = "0.10.0"
-description = "NiuClaw Agent — a self-improving AI agent that creates skills from experience, improves them during use, and runs anywhere"
+description = "NiuMa Agent — a self-improving AI agent that creates skills from experience, improves them during use, and runs anywhere"
 readme = "README.md"
 requires-python = ">=3.11"
-authors = [{ name = "NiuClaw" }]
+authors = [{ name = "NiuMa" }]
 license = { text = "MIT" }
 dependencies = [
   # Core — pinned to known-good ranges to limit supply chain attack surface
@@ -69,12 +69,12 @@ termux = [
   # avoiding extras that currently depend on non-Android wheels (notably
   # faster-whisper -> ctranslate2 via the voice extra).
   "python-telegram-bot[webhooks]>=22.6,<23",
-  "hermes-agent[cron]",
-  "hermes-agent[cli]",
-  "hermes-agent[pty]",
-  "hermes-agent[mcp]",
-  "hermes-agent[honcho]",
-  "hermes-agent[acp]",
+  "niuma-agent[cron]",
+  "niuma-agent[cli]",
+  "niuma-agent[pty]",
+  "niuma-agent[mcp]",
+  "niuma-agent[honcho]",
+  "niuma-agent[acp]",
 ]
 dingtalk = ["dingtalk-stream>=0.20,<1", "alibabacloud-dingtalk>=2.0.0", "qrcode>=7.0,<8"]
 feishu = ["lark-oapi>=1.5.3,<2", "qrcode>=7.0,<8"]
@@ -88,38 +88,38 @@ rl = [
 ]
 yc-bench = ["yc-bench @ git+https://github.com/collinear-ai/yc-bench.git@bfb0c88062450f46341bd9a5298903fc2e952a5c ; python_version >= '3.12'"]
 all = [
-  "hermes-agent[modal]",
-  "hermes-agent[daytona]",
-  "hermes-agent[messaging]",
+  "niuma-agent[modal]",
+  "niuma-agent[daytona]",
+  "niuma-agent[messaging]",
   # matrix: python-olm (required by matrix-nio[e2e]) is upstream-broken on
   # modern macOS (archived libolm, C++ errors with Clang 21+).  On Linux the
   # [matrix] extra's own marker pulls in the [e2e] variant automatically.
-  "hermes-agent[matrix]; sys_platform == 'linux'",
-  "hermes-agent[cron]",
-  "hermes-agent[cli]",
-  "hermes-agent[dev]",
-  "hermes-agent[tts-premium]",
-  "hermes-agent[slack]",
-  "hermes-agent[pty]",
-  "hermes-agent[honcho]",
-  "hermes-agent[mcp]",
-  "hermes-agent[homeassistant]",
-  "hermes-agent[sms]",
-  "hermes-agent[acp]",
-  "hermes-agent[voice]",
-  "hermes-agent[dingtalk]",
-  "hermes-agent[feishu]",
-  "hermes-agent[mistral]",
-  "hermes-agent[bedrock]",
-  "hermes-agent[web]",
+  "niuma-agent[matrix]; sys_platform == 'linux'",
+  "niuma-agent[cron]",
+  "niuma-agent[cli]",
+  "niuma-agent[dev]",
+  "niuma-agent[tts-premium]",
+  "niuma-agent[slack]",
+  "niuma-agent[pty]",
+  "niuma-agent[honcho]",
+  "niuma-agent[mcp]",
+  "niuma-agent[homeassistant]",
+  "niuma-agent[sms]",
+  "niuma-agent[acp]",
+  "niuma-agent[voice]",
+  "niuma-agent[dingtalk]",
+  "niuma-agent[feishu]",
+  "niuma-agent[mistral]",
+  "niuma-agent[bedrock]",
+  "niuma-agent[web]",
 ]
 
 [project.scripts]
-niuclaw = "hermes_cli.main:main"
+niuma = "hermes_cli.main:main"
 hermes = "hermes_cli.main:main"  # backward compat alias
-niuclaw-agent = "run_agent:main"
+niuma-agent = "run_agent:main"
 hermes-agent = "run_agent:main"
-niuclaw-acp = "acp_adapter.entry:main"
+niuma-acp = "acp_adapter.entry:main"
 hermes-acp = "acp_adapter.entry:main"
 
 [tool.setuptools]

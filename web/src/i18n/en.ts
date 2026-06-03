@@ -45,12 +45,12 @@ export const en: Translations = {
   },
 
   app: {
-    brand: "NiuClaw Agent",
-    brandShort: "NC",
+    brand: "NiuMa Agent",
+    brandShort: "NM",
     webUi: "Web UI",
     footer: {
-      name: "NiuClaw Agent",
-      org: "NiuClaw",
+      name: "NiuMa Agent",
+      org: "NiuMa",
     },
     nav: {
       status: "Status",
@@ -168,7 +168,7 @@ export const en: Translations = {
     searchPlaceholder: "Search skills and toolsets...",
     enabledOf: "{enabled}/{total} enabled",
     all: "All",
-    noSkills: "No skills found. Skills are loaded from ~/.niuclaw/skills/",
+    noSkills: "No skills found. Skills are loaded from ~/.niuma/skills/",
     noSkillsMatch: "No skills match your search or filter.",
     skillCount: "{count} skill{s}",
     resultCount: "{count} result{s}",
@@ -182,7 +182,7 @@ export const en: Translations = {
   },
 
   config: {
-    configPath: "~/.niuclaw/config.yaml",
+    configPath: "~/.niuma/config.yaml",
     exportConfig: "Export config as JSON",
     importConfig: "Import config from JSON",
     resetDefaults: "Reset to defaults",

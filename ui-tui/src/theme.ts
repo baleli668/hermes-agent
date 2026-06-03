@@ -79,11 +79,11 @@ function mix(a: string, b: string, t: number) {
 // ── Defaults ─────────────────────────────────────────────────────────
 
 const BRAND: ThemeBrand = {
-  name: 'NiuClaw Agent',
+  name: 'NiuMa Agent',
   icon: '◆',
   prompt: '◆ ❯',
   welcome: 'Type your message or /help for commands.',
-  goodbye: 'Claws retracted! ◆',
+  goodbye: 'Gallop on! ◆',
   tool: '┊',
   helpHeader: '◆ Commands'
 }

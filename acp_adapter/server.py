@@ -338,7 +338,7 @@ class HermesACPAgent(acp.Agent):
 
         return InitializeResponse(
             protocol_version=acp.PROTOCOL_VERSION,
-            agent_info=Implementation(name="niuclaw-agent", version=HERMES_VERSION),
+            agent_info=Implementation(name="niuma-agent", version=HERMES_VERSION),
             agent_capabilities=AgentCapabilities(
                 load_session=True,
                 session_capabilities=SessionCapabilities(
