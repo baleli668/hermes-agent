@@ -16,8 +16,14 @@ param(
     [switch]$NoVenv,
     [switch]$SkipSetup,
     [string]$Branch = "main",
+    [string]$Commit = "",
+    [string]$Tag = "",
     [string]$HermesHome = "$env:LOCALAPPDATA\niuma",
-    [string]$InstallDir = "$env:LOCALAPPDATA\niuma\niuma-agent"
+    [string]$InstallDir = "$env:LOCALAPPDATA\niuma\niuma-agent",
+    # -SourceDir: use a pre-extracted local directory instead of git-cloning.
+    # When set, the repository stage is skipped (the caller already populated
+    # $InstallDir). For offline/pre-installed scenarios.
+    [string]$SourceDir = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -411,7 +417,25 @@ function Install-SystemPackages {
 
 function Install-Repository {
     Write-Info "Installing to $InstallDir..."
-    
+
+    # Offline mode: source is already extracted by the desktop bootstrap.
+    # Skip git clone entirely — just verify the directory exists.
+    if ($SourceDir) {
+        if (-not (Test-Path $SourceDir)) {
+            throw "SourceDir does not exist: $SourceDir"
+        }
+        if ($SourceDir -ne $InstallDir) {
+            Write-Info "Copying source from $SourceDir to $InstallDir ..."
+            New-Item -ItemType Directory -Force -Path (Split-Path $InstallDir -Parent) | Out-Null
+            if (Test-Path $InstallDir) {
+                Remove-Item -Recurse -Force $InstallDir
+            }
+            Copy-Item -Recurse -Path "$SourceDir\*" -Destination $InstallDir
+        }
+        Write-Success "Source ready (offline bundle)"
+        return
+    }
+
     if (Test-Path $InstallDir) {
         if (Test-Path "$InstallDir\.git") {
             Write-Info "Existing installation found, updating..."

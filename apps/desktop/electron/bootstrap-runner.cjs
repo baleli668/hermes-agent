@@ -39,6 +39,8 @@ const fsp = require('node:fs/promises')
 const path = require('node:path')
 const https = require('node:https')
 const { spawn } = require('node:child_process')
+const zlib = require('node:zlib')
+const { execSync } = require('node:child_process')
 
 const STAMP_COMMIT_RE = /^[0-9a-f]{7,40}$/i
 
@@ -147,17 +149,62 @@ function downloadInstallScript(commit, destPath) {
   })
 }
 
-async function resolveInstallScript({ installStamp, sourceRepoRoot, hermesHome, emit }) {
-  // 1. Dev shortcut: prefer a local checkout's installer so we can iterate
-  //    without pushing. SOURCE_REPO_ROOT comes from main.cjs (path.resolve
-  //    of APP_ROOT/../..).
+function offlineBundleDir() {
+  // In packaged builds, extraResources/offline/ lands inside resources/
+  const candidates = [
+    process.resourcesPath && path.join(process.resourcesPath, 'offline'),
+    process.resourcesPath && path.join(process.resourcesPath, 'app.asar.unpacked', 'offline'),
+  ]
+  for (const c of candidates) {
+    if (c && fs.existsSync(path.join(c, 'manifest.json'))) return c
+  }
+  return null
+}
+
+async function resolveInstallScript({ installStamp, sourceRepoRoot, hermesHome, activeRoot, emit }) {
+  // 1. Dev shortcut: prefer a local checkout's installer.
   const localScript = resolveLocalInstallScript(sourceRepoRoot)
   if (localScript) {
     emit({ type: 'log', line: `[bootstrap] using local ${installScriptName()} at ${localScript}` })
     return { path: localScript, source: 'local', kind: installScriptKind() }
   }
 
-  // 2. Packaged path: download from GitHub at the pinned commit (1B's stamp).
+  // 2. Offline bundle: shipped inside the Electron app extraResources.
+  const offlineDir = offlineBundleDir()
+  if (offlineDir) {
+    const offlineScript = path.join(offlineDir, installScriptName())
+    const manifestPath = path.join(offlineDir, 'manifest.json')
+    if (fs.existsSync(offlineScript)) {
+      emit({ type: 'log', line: `[bootstrap] using offline-bundled ${installScriptName()}` })
+
+      // Extract source tarball if present
+      const tarballPath = path.join(offlineDir, 'source.tar.gz')
+      if (fs.existsSync(tarballPath) && activeRoot) {
+        emit({ type: 'log', line: `[bootstrap] extracting offline source to ${activeRoot} ...` })
+        fs.mkdirSync(activeRoot, { recursive: true })
+        try {
+          // Windows 10+ has tar.exe built in
+          execSync(`tar -xzf "${tarballPath}" -C "${activeRoot}"`, {
+            stdio: 'pipe',
+            timeout: 120000
+          })
+          emit({ type: 'log', line: `[bootstrap] source extracted to ${activeRoot}` })
+        } catch (err) {
+          emit({ type: 'log', line: `[bootstrap] tar extract failed: ${err.message}` })
+          throw new Error(`Failed to extract offline source bundle: ${err.message}`)
+        }
+      }
+
+      return {
+        path: offlineScript,
+        source: 'offline-bundle',
+        kind: installScriptKind(),
+        sourceDir: activeRoot // tell install.ps1 to use this dir instead of cloning
+      }
+    }
+  }
+
+  // 3. Packaged path: download from GitHub at the pinned commit.
   if (!installStamp || !installStamp.commit || !STAMP_COMMIT_RE.test(installStamp.commit)) {
     throw new Error(
       `Cannot resolve ${installScriptName()}: no SOURCE_REPO_ROOT and no install stamp. ` +
@@ -336,13 +383,17 @@ function spawnBash(scriptPath, args, { emit, stageName, abortSignal, hermesHome 
 // Build the install.ps1 pin args (-Commit / -Branch) from the install-stamp
 // so the repository stage clones the exact SHA the .exe was tested with
 // instead of falling back to install.ps1's default ($Branch = "main").
-function buildPinArgs(installStamp) {
+function buildPinArgs(installStamp, sourceDir) {
   const args = []
-  if (installStamp && installStamp.commit) {
-    args.push('-Commit', installStamp.commit)
-  }
-  if (installStamp && installStamp.branch) {
-    args.push('-Branch', installStamp.branch)
+  if (sourceDir) {
+    args.push('-SourceDir', sourceDir)
+  } else {
+    if (installStamp && installStamp.commit) {
+      args.push('-Commit', installStamp.commit)
+    }
+    if (installStamp && installStamp.branch) {
+      args.push('-Branch', installStamp.branch)
+    }
   }
   return args
 }
@@ -358,11 +409,11 @@ function buildPosixPinArgs({ installStamp, activeRoot, hermesHome }) {
   return args
 }
 
-async function fetchManifest({ scriptPath, installerKind, emit, hermesHome, activeRoot, installStamp }) {
+async function fetchManifest({ scriptPath, installerKind, emit, hermesHome, activeRoot, sourceDir, installStamp }) {
   const isPosix = installerKind === 'posix'
   const args = isPosix
     ? ['--manifest', ...buildPosixPinArgs({ installStamp, activeRoot, hermesHome })]
-    : ['-Manifest', ...buildPinArgs(installStamp)]
+    : ['-Manifest', ...buildPinArgs(installStamp, sourceDir)]
   const result = await (isPosix ? spawnBash : spawnPowerShell)(scriptPath, args, {
     emit,
     stageName: '__manifest__',
@@ -402,14 +453,14 @@ function parseStageResult(stdout) {
   return null
 }
 
-async function runStage({ scriptPath, installerKind, stage, emit, hermesHome, activeRoot, abortSignal, installStamp }) {
+async function runStage({ scriptPath, installerKind, stage, emit, hermesHome, activeRoot, abortSignal, sourceDir, installStamp }) {
   const startedAt = Date.now()
   emit({ type: 'stage', name: stage.name, state: 'running' })
 
   const isPosix = installerKind === 'posix'
   const args = isPosix
     ? ['--stage', stage.name, '--non-interactive', '--json', ...buildPosixPinArgs({ installStamp, activeRoot, hermesHome })]
-    : ['-Stage', stage.name, '-NonInteractive', '-Json', ...buildPinArgs(installStamp)]
+    : ['-Stage', stage.name, '-NonInteractive', '-Json', ...buildPinArgs(installStamp, sourceDir)]
   const result = await (isPosix ? spawnBash : spawnPowerShell)(
     scriptPath,
     args,
@@ -521,8 +572,9 @@ async function runBootstrap(opts) {
 
   try {
     // 1. Resolve the platform installer.
-    const scriptInfo = await resolveInstallScript({ installStamp, sourceRepoRoot, hermesHome, emit })
+    const scriptInfo = await resolveInstallScript({ installStamp, sourceRepoRoot, hermesHome, activeRoot, emit })
     const installerKind = scriptInfo.kind || 'powershell'
+    const sourceDir = scriptInfo.sourceDir || null
 
     // 2. Fetch manifest
     const manifest = await fetchManifest({
@@ -531,6 +583,7 @@ async function runBootstrap(opts) {
       emit,
       hermesHome,
       activeRoot,
+      sourceDir,
       installStamp
     })
     emit({
@@ -556,6 +609,7 @@ async function runBootstrap(opts) {
         hermesHome,
         activeRoot,
         abortSignal,
+        sourceDir,
         installStamp
       })
       if (ev.state === 'failed') {
