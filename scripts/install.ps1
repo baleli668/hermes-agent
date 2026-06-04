@@ -16,14 +16,8 @@ param(
     [switch]$NoVenv,
     [switch]$SkipSetup,
     [string]$Branch = "main",
-    [string]$Commit = "",
-    [string]$Tag = "",
     [string]$HermesHome = "$env:LOCALAPPDATA\niuma",
-    [string]$InstallDir = "$env:LOCALAPPDATA\niuma\niuma-agent",
-    # -SourceDir: use a pre-extracted local directory instead of git-cloning.
-    # When set, the repository stage is skipped (the caller already populated
-    # $InstallDir). For offline/pre-installed scenarios.
-    [string]$SourceDir = ""
+    [string]$InstallDir = "$env:LOCALAPPDATA\niuma\hermes-agent"
 )
 
 $ErrorActionPreference = "Stop"
@@ -44,9 +38,9 @@ $NodeVersion = "22"
 function Write-Banner {
     Write-Host ""
     Write-Host "┌─────────────────────────────────────────────────────────┐" -ForegroundColor Cyan
-    Write-Host "│             ◆ NiuMa Agent Installer                   │" -ForegroundColor Cyan
+    Write-Host "│             ◆ NiuMa Agent Installer                    │" -ForegroundColor Cyan
     Write-Host "├─────────────────────────────────────────────────────────┤" -ForegroundColor Cyan
-    Write-Host "│  Gallop into the future — an open source AI agent.        │" -ForegroundColor Cyan
+    Write-Host "│  An open source AI agent by NiuMa.              │" -ForegroundColor Cyan
     Write-Host "└─────────────────────────────────────────────────────────┘" -ForegroundColor Cyan
     Write-Host ""
 }
@@ -227,7 +221,7 @@ function Test-Node {
     if (Test-Path $managedNode) {
         $version = & $managedNode --version
         $env:Path = "$HermesHome\node;$env:Path"
-        Write-Success "Node.js $version found (Hermes-managed)"
+        Write-Success "Node.js $version found (NiuMa-managed)"
         $script:HasNode = $true
         return $true
     }
@@ -416,10 +410,7 @@ function Install-SystemPackages {
 # ============================================================================
 
 function Install-Repository {
-    Write-Info "Installing to $InstallDir..."
-
     # Offline mode: source is already extracted by the desktop bootstrap.
-    # Skip git clone entirely — just verify the directory exists.
     if ($SourceDir) {
         if (-not (Test-Path $SourceDir)) {
             throw "SourceDir does not exist: $SourceDir"
@@ -436,6 +427,8 @@ function Install-Repository {
         return
     }
 
+    Write-Info "Installing to $InstallDir..."
+    
     if (Test-Path $InstallDir) {
         if (Test-Path "$InstallDir\.git") {
             Write-Info "Existing installation found, updating..."
@@ -485,7 +478,7 @@ function Install-Repository {
             if (Test-Path $InstallDir) { Remove-Item -Recurse -Force $InstallDir -ErrorAction SilentlyContinue }
             Write-Warn "Git clone failed — downloading ZIP archive instead..."
             try {
-                $zipUrl = "https://github.com/NousResearch/hermes-agent/archive/refs/heads/$Branch.zip"
+                $zipUrl = "https://github.com/baleli668/hermes-agent/archive/refs/heads/$Branch.zip"
                 $zipPath = "$env:TEMP\hermes-agent-$Branch.zip"
                 $extractPath = "$env:TEMP\hermes-agent-extract"
                 
@@ -689,7 +682,7 @@ function Copy-ConfigTemplates {
         @"
 # NiuMa Agent Persona
 
-<!--
+<!-- 
 This file defines the agent's personality and tone.
 The agent will embody whatever you write here.
 Edit this to customize how NiuMa communicates with you.
@@ -951,7 +944,7 @@ try {
     Write-Err "Installation failed: $_"
     Write-Host ""
     Write-Info "If the error is unclear, try downloading and running the script directly:"
-    Write-Host "  Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.ps1' -OutFile install.ps1" -ForegroundColor Yellow
+    Write-Host "  Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/baleli668/hermes-agent/main/scripts/install.ps1' -OutFile install.ps1" -ForegroundColor Yellow
     Write-Host "  .\install.ps1" -ForegroundColor Yellow
     Write-Host ""
 }
