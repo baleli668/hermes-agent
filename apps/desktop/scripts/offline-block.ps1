@@ -6,11 +6,11 @@
         if ($SourceDir -ne $InstallDir) {
             Write-Info "Copying source from $SourceDir to $InstallDir ..."
             New-Item -ItemType Directory -Force -Path (Split-Path $InstallDir -Parent) | Out-Null
+            # Remove stale destination (may be file OR dir from prior runs)
             if (Test-Path $InstallDir) {
-                cmd /c "rd /s /q `"$InstallDir`"" 2>$null
-                Start-Sleep -Milliseconds 500
+                Remove-Item -Force -Recurse -ErrorAction SilentlyContinue $InstallDir
                 if (Test-Path $InstallDir) {
-                    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $InstallDir
+                    throw "Could not remove stale destination: $InstallDir"
                 }
             }
             Copy-Item -Recurse -Path "$SourceDir\*" -Destination $InstallDir -ErrorAction Stop
