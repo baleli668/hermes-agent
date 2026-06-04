@@ -27,14 +27,13 @@ const OUT = path.resolve(__dirname, '..', 'build', 'offline')
 // Each entry is [search, replace] — both MUST be UTF-8 strings.
 // LONGER strings first to avoid partial-match ordering issues.
 const BRAND_REPLACEMENTS = [
-  // GitHub URLs — replace BEFORE generic "hermes-agent" → "niuma-agent"
+  // GitHub URLs — replace BEFORE generic "hermes-agent"
   ['NousResearch/hermes-agent', 'baleli668/hermes-agent'],
 
   // Paths with backslashes — keep literal, order matters (longer first)
   ['LOCALAPPDATA\\hermes\\hermes-agent', 'LOCALAPPDATA\\niuma\\niuma-agent'],
   ['LOCALAPPDATA\\hermes', 'LOCALAPPDATA\\niuma'],
   ['HERMES_HOME\\hermes-agent', 'HERMES_HOME\\niuma-agent'],
-  // After above: niuma\hermes-agent → niuma\niuma-agent
   ['niuma\\hermes-agent', 'niuma\\niuma-agent'],
 
   // Full phrases
@@ -47,7 +46,7 @@ const BRAND_REPLACEMENTS = [
   ['Nous Research', 'NiuMa'],
 
   // Icon
-  ['⚕', '◆'],
+  ['⚕', '◆'],  // caduceus → diamond
 
   // Managed string
   ['(Hermes-managed)', '(NiuMa-managed)'],
@@ -62,56 +61,31 @@ const BRAND_REPLACEMENTS = [
   ['-ForegroundColor Magenta', '-ForegroundColor Cyan'],
 ]
 
-// ── Offline-mode SourceDir patch (inserted after Install-Repository {) ──
-const SOURCEDIR_BLOCK = Buffer.from(`
-    # Offline mode: source is already extracted by the desktop bootstrap.
-    if ($SourceDir) {
-        if (-not (Test-Path $SourceDir)) {
-            throw "SourceDir does not exist: $SourceDir"
-        }
-        if ($SourceDir -ne $InstallDir) {
-            Write-Info "Copying source from $SourceDir to $InstallDir ..."
-            New-Item -ItemType Directory -Force -Path (Split-Path $InstallDir -Parent) | Out-Null
-            if (Test-Path $InstallDir) {
-                Remove-Item -Recurse -Force $InstallDir
-            }
-            Copy-Item -Recurse -Path "$SourceDir\\*" -Destination $InstallDir
-        }
-        Write-Success "Source ready (offline bundle)"
-        return
-    }
-`, 'utf8')
+// ── Offline-mode SourceDir patch ────────────────────────────────────────
+// Read from separate .ps1 snippet to avoid JS backtick / PS backtick conflicts
+const SOURCEDIR_BLOCK = fs.readFileSync(path.join(__dirname, 'offline-block.ps1'))
 
 // ── Helpers ─────────────────────────────────────────────────────────────
 
 function getCleanInstallPs1() {
   // Use the LATEST upstream install.ps1 (which we know works — tested).
-  // Our local copy at scripts/install.ps1 was corrupted by previous sed edits.
-  // The upstream version is the ground truth; we brand it below.
   const result = execSync(
     'git show upstream/main:scripts/install.ps1',
     { cwd: ROOT, encoding: 'buffer', maxBuffer: 10 * 1024 * 1024 }
   )
-  console.log(`[offline-bundle] extracted from upstream/main: ${result.length} bytes`)
-  return result // raw Buffer, untouched
+  console.log('[offline-bundle] extracted from upstream/main: ' + result.length + ' bytes')
+  return result
 }
 
 function applyReplacements(buf) {
-  // All replacements operate on UTF-8 bytes to avoid any encoding corruption.
   for (const [search, replace] of BRAND_REPLACEMENTS) {
     const searchBuf = Buffer.from(search, 'utf8')
     const replaceBuf = Buffer.from(replace, 'utf8')
-
     let offset = 0
     while (true) {
       const idx = buf.indexOf(searchBuf, offset)
       if (idx === -1) break
-      // Replace in-place: copy prefix + replacement + suffix
-      buf = Buffer.concat([
-        buf.subarray(0, idx),
-        replaceBuf,
-        buf.subarray(idx + searchBuf.length),
-      ])
+      buf = Buffer.concat([buf.subarray(0, idx), replaceBuf, buf.subarray(idx + searchBuf.length)])
       offset = idx + replaceBuf.length
     }
   }
@@ -120,20 +94,11 @@ function applyReplacements(buf) {
 
 function addSourceDirParam(buf) {
   // Add [string]$SourceDir = "" before closing ")" of param().
-  // The last param is [switch]$IncludeDesktop (no trailing comma).
-  // We replace "$IncludeDesktop\n)" with "$IncludeDesktop,\n    [string]$SourceDir = ""\n)"
-  const pattern = Buffer.from('$IncludeDesktop\n)', 'utf8')
-  const replacement = Buffer.from(
-    '$IncludeDesktop,\n    [string]$SourceDir = ""\n)',
-    'utf8'
-  )
-  const idx = buf.indexOf(pattern)
+  var pattern = Buffer.from('$IncludeDesktop\n)', 'utf8')
+  var replacement = Buffer.from('$IncludeDesktop,\n    [string]$SourceDir = ""\n)', 'utf8')
+  var idx = buf.indexOf(pattern)
   if (idx !== -1) {
-    buf = Buffer.concat([
-      buf.subarray(0, idx),
-      replacement,
-      buf.subarray(idx + pattern.length),
-    ])
+    buf = Buffer.concat([buf.subarray(0, idx), replacement, buf.subarray(idx + pattern.length)])
     console.log('[offline-bundle] inserted -SourceDir param')
   } else {
     console.error('[offline-bundle] WARNING: could not find IncludeDesktop to add SourceDir')
@@ -143,42 +108,35 @@ function addSourceDirParam(buf) {
 
 function addOfflineBlock(buf) {
   // Insert offline check right after "function Install-Repository {"
-  const marker = Buffer.from('function Install-Repository {', 'utf8')
-  const idx = buf.indexOf(marker)
+  var marker = Buffer.from('function Install-Repository {', 'utf8')
+  var idx = buf.indexOf(marker)
   if (idx === -1) {
     console.error('[offline-bundle] WARNING: could not find Install-Repository function')
     return buf
   }
-  const insertAt = idx + marker.length
-  return Buffer.concat([
-    buf.subarray(0, insertAt),
-    SOURCEDIR_BLOCK,
-    buf.subarray(insertAt),
-  ])
+  var insertAt = idx + marker.length
+  return Buffer.concat([buf.subarray(0, insertAt), SOURCEDIR_BLOCK, buf.subarray(insertAt)])
 }
 
 function selfTest(buf) {
-  // Write to a temp file and run PowerShell -Manifest to verify parsing.
-  const testPath = path.join(OUT, '.test_install.ps1')
+  var testPath = path.join(OUT, '.test_install.ps1')
   fs.writeFileSync(testPath, buf)
-
   console.log('[offline-bundle] self-test: running PowerShell manifest parse...')
   try {
-    const result = execSync(
-      `powershell.exe -NoProfile -ExecutionPolicy Bypass -File "${testPath}" -Manifest`,
+    var result = execSync(
+      'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + testPath + '" -Manifest',
       { encoding: 'utf8', timeout: 60000, stdio: 'pipe' }
     )
-    // Check that output contains valid JSON with "stages" field
-    const lines = result.split(/\r?\n/).filter(Boolean)
-    for (let i = lines.length - 1; i >= 0; i--) {
+    var lines = result.split(/\r?\n/).filter(Boolean)
+    for (var i = lines.length - 1; i >= 0; i--) {
       try {
-        const parsed = JSON.parse(lines[i])
+        var parsed = JSON.parse(lines[i])
         if (parsed && Array.isArray(parsed.stages) && parsed.stages.length > 0) {
-          console.log(`[offline-bundle] self-test PASSED — ${parsed.stages.length} stages`)
+          console.log('[offline-bundle] self-test PASSED — ' + parsed.stages.length + ' stages')
           fs.unlinkSync(testPath)
           return true
         }
-      } catch {}
+      } catch (e) {}
     }
     console.error('[offline-bundle] self-test FAILED: no valid manifest in output')
     console.error('[offline-bundle] stdout:', result.substring(0, 2000))
@@ -187,8 +145,7 @@ function selfTest(buf) {
   } catch (err) {
     console.error('[offline-bundle] self-test FAILED: PowerShell exited with error')
     console.error('[offline-bundle] stderr:', (err.stderr || err.message).substring(0, 2000))
-    // Keep test file for debugging
-    console.error(`[offline-bundle] test file kept at: ${testPath}`)
+    console.error('[offline-bundle] test file kept at: ' + testPath)
     return false
   }
 }
@@ -198,57 +155,49 @@ function selfTest(buf) {
 function main() {
   console.log('[offline-bundle] preparing offline bootstrap bundle...')
 
-  // Clean and recreate output dir
   fs.rmSync(OUT, { recursive: true, force: true })
   fs.mkdirSync(OUT, { recursive: true })
 
-  // ── install.ps1: git-clean → brand → patch → verify ──
+  // install.ps1
   console.log('[offline-bundle] extracting clean install.ps1 from git...')
-  let buf = getCleanInstallPs1()
-  console.log(`[offline-bundle] original: ${buf.length} bytes`)
+  var buf = getCleanInstallPs1()
+  console.log('[offline-bundle] original: ' + buf.length + ' bytes')
 
   buf = applyReplacements(buf)
-  console.log(`[offline-bundle] branded: ${buf.length} bytes`)
+  console.log('[offline-bundle] branded: ' + buf.length + ' bytes')
 
   buf = addSourceDirParam(buf)
-  console.log(`[offline-bundle] +SourceDir: ${buf.length} bytes`)
 
   buf = addOfflineBlock(buf)
-  console.log(`[offline-bundle] +offline: ${buf.length} bytes`)
+  console.log('[offline-bundle] +patches: ' + buf.length + ' bytes')
 
-  // Self-test before accepting
   if (!selfTest(buf)) {
-    console.error('[offline-bundle] ABORTING BUILD — install.ps1 failed PowerShell self-test')
+    console.error('[offline-bundle] ABORTING BUILD')
     process.exit(1)
   }
 
-  // Write the verified file
   fs.writeFileSync(path.join(OUT, 'install.ps1'), buf)
   console.log('[offline-bundle] install.ps1 written and verified')
 
-  // ── install.sh: copy from working tree ──
-  const installSh = path.join(ROOT, 'scripts', 'install.sh')
+  // install.sh
+  var installSh = path.join(ROOT, 'scripts', 'install.sh')
   if (fs.existsSync(installSh)) {
     fs.copyFileSync(installSh, path.join(OUT, 'install.sh'))
     console.log('[offline-bundle] copied install.sh')
   }
 
-  // ── source.tar.gz via git archive ──
-  const tarball = path.join(OUT, 'source.tar.gz')
+  // source.tar.gz
+  var tarball = path.join(OUT, 'source.tar.gz')
   console.log('[offline-bundle] creating source tarball via git archive...')
-  execSync(
-    `git archive --format=tar.gz -o "${tarball}" HEAD`,
-    { cwd: ROOT, stdio: 'pipe' }
-  )
-  const tarballSize = fs.statSync(tarball).size
-  console.log(`[offline-bundle] source.tar.gz: ${(tarballSize / 1024 / 1024).toFixed(1)} MB`)
+  execSync('git archive --format=tar.gz -o "' + tarball + '" HEAD', { cwd: ROOT, stdio: 'pipe' })
+  console.log('[offline-bundle] source.tar.gz: ' + (fs.statSync(tarball).size / 1024 / 1024).toFixed(1) + ' MB')
 
-  // ── manifest.json ──
-  let commit = 'unknown', branch = 'main'
+  // manifest.json
+  var commit = 'unknown', branch = 'main'
   try {
     commit = execSync('git rev-parse HEAD', { cwd: ROOT, encoding: 'utf8' }).trim()
     branch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: ROOT, encoding: 'utf8' }).trim()
-  } catch {}
+  } catch (e) {}
 
   fs.writeFileSync(
     path.join(OUT, 'manifest.json'),
