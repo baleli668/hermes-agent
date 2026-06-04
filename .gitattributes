@@ -53,3 +53,4 @@ pyproject.toml merge=ours
 apps/desktop/package.json merge=ours
 apps/desktop/index.html merge=ours
 apps/desktop/electron/main.cjs merge=ours
+apps/desktop/electron/bootstrap-runner.cjs merge=ours
